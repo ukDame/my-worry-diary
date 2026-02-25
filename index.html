@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Worry Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #4A8B8C;
+    --soft-teal: #6BAAB0;
+    --pale-teal: #D6EBEC;
+    --lavender: #E8E4F0;
+    --lavender-accent: #7A6B9A;
+    --warm-grey: #F5F3F0;
+    --mid-grey: #9A9A9A;
+    --dark: #2C2C2C;
+    --sage: #7A9E7E;
+    --pale-sage: #E2EDE3;
+    --blush: #F0E6E6;
+    --blush-accent: #9A5555;
+    --gold: #C4A84A;
+    --line-color: #CCCCCC;
+    --white: #FFFFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: #EFEFEB;
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  /* Top bar */
+  .top-bar {
+    background: var(--teal);
+    height: 10px;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    z-index: 100;
+  }
+
+  /* Navigation */
+  nav {
+    position: fixed;
+    top: 10px;
+    width: 100%;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--pale-teal);
+    z-index: 99;
+    padding: 0 24px;
+  }
+
+  .nav-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+    gap: 6px;
+  }
+
+  .nav-title {
+    font-family: 'Lora', serif;
+    font-size: 14px;
+    color: var(--teal);
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .nav-tabs::-webkit-scrollbar { display: none; }
+
+  .nav-tab {
+    background: none;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 11.5px;
+    color: var(--mid-grey);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .nav-tab:hover { background: var(--pale-teal); color: var(--teal); }
+  .nav-tab.active { background: var(--teal); color: white; }
+
+  .nav-save {
+    background: var(--sage);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 7px 16px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+  }
+  .nav-save:hover { opacity: 0.85; }
+
+  .nav-export {
+    background: transparent;
+    color: var(--teal);
+    border: 1.5px solid var(--teal);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .nav-export:hover { background: var(--pale-teal); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: white;
+    border-radius: 14px;
+    padding: 28px 32px;
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: fadeIn 0.25s ease;
+  }
+  .modal-box h3 { font-family: 'Lora', serif; color: var(--teal); font-size: 18px; margin-bottom: 10px; }
+  .modal-box p { font-size: 13.5px; color: #555; line-height: 1.65; margin-bottom: 18px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-cancel { background: var(--warm-grey); border: none; border-radius: 20px; padding: 9px 20px; font-family: 'Source Sans 3', sans-serif; font-size: 13px; color: #666; cursor: pointer; }
+  .modal-confirm { background: var(--blush-accent); border: none; border-radius: 20px; padding: 9px 22px; font-family: 'Source Sans 3', sans-serif; font-size: 13px; font-weight: 600; color: white; cursor: pointer; }
+  .modal-confirm:hover { opacity: 0.85; }
+
+  /* Main layout */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 82px 20px 60px;
+  }
+
+  /* Sections */
+  .section { display: none; animation: fadeIn 0.35s ease; }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── COVER ── */
+  .cover-title-box {
+    background: var(--pale-teal);
+    border-radius: 12px;
+    padding: 28px 32px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .cover-title-box h1 {
+    font-family: 'Lora', serif;
+    font-size: clamp(28px, 5vw, 42px);
+    color: var(--teal);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .cover-subtitle {
+    text-align: center;
+    font-size: 15px;
+    color: var(--soft-teal);
+    margin-bottom: 6px;
+    line-height: 1.6;
+  }
+
+  .cover-tagline {
+    text-align: center;
+    font-size: 13px;
+    color: var(--mid-grey);
+    font-style: italic;
+    margin-bottom: 20px;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--pale-teal);
+    margin: 20px 0;
+  }
+
+  .intro-text {
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: var(--dark);
+    margin-bottom: 14px;
+  }
+
+  .how-to-box {
+    background: var(--warm-grey);
+    border-top: 3px solid var(--sage);
+    border-radius: 0 0 8px 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+
+  .how-to-box h3 {
+    font-family: 'Lora', serif;
+    color: var(--soft-teal);
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+
+  .how-to-box ol {
+    padding-left: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .how-to-box li {
+    font-size: 13.5px;
+    color: var(--dark);
+    line-height: 1.5;
+    padding-left: 4px;
+  }
+
+  .pull-quote {
+    text-align: center;
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: #555;
+    padding: 16px 24px;
+    line-height: 1.7;
+  }
+
+  .name-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  .name-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .name-field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--teal);
+    white-space: nowrap;
+  }
+
+  .name-field input {
+    flex: 1;
+    border: none;
+    border-bottom: 1.5px solid var(--mid-grey);
+    background: transparent;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 13px;
+    padding: 4px 2px;
+    color: var(--dark);
+    outline: none;
+  }
+
+  .name-field input:focus { border-bottom-color: var(--teal); }
+
+  /* ── WORRIES GUIDE ── */
+  .section-heading {
+    font-family: 'Lora', serif;
+    font-size: clamp(20px, 3vw, 26px);
+    color: var(--teal);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .worry-category {
+    border-radius: 0 0 8px 8px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+  }
+
+  .worry-category h3 {
+    font-family: 'Lora', serif;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+  }
+
+  .worry-category ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .worry-category ul li {
+    font-size: 13px;
+    font-style: italic;
+    line-height: 1.55;
+    padding-left: 14px;
+    position: relative;
+  }
+
+  .worry-category ul li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    font-style: normal;
+  }
+
+  .cat-health { background: var(--pale-teal); border-top: 3px solid var(--teal); }
+  .cat-health h3 { color: var(--teal); }
+  .cat-medical { background: var(--pale-sage); border-top: 3px solid var(--sage); }
+  .cat-medical h3 { color: var(--sage); }
+  .cat-burden { background: var(--lavender); border-top: 3px solid var(--lavender-accent); }
+  .cat-burden h3 { color: var(--lavender-accent); }
+  .cat-family { background: var(--blush); border-top: 3px solid var(--blush-accent); }
+  .cat-family h3 { color: var(--blush-accent); }
+  .cat-future { background: var(--warm-grey); border-top: 3px solid #6A6A6A; }
+  .cat-future h3 { color: #6A6A6A; }
+
+  .footnote-italic {
+    font-style: italic;
+    font-size: 13px;
+    color: #666;
+    margin-top: 12px;
+  }
+
+  /* ── ENTRY PAGES ── */
+  .entry-nav {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .entry-btn {
+    background: var(--warm-grey);
+    border: 1.5px solid var(--pale-teal);
+    border-radius: 20px;
+    padding: 7px 16px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 12px;
+    color: var(--mid-grey);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .entry-btn:hover { border-color: var(--teal); color: var(--teal); }
+  .entry-btn.active { background: var(--teal); border-color: var(--teal); color: white; }
+  .entry-btn.has-content { border-color: var(--sage); color: var(--sage); }
+  .entry-btn.has-content.active { background: var(--sage); border-color: var(--sage); color: white; }
+
+  .entry-card { display: none; }
+  .entry-card.active { display: block; animation: fadeIn 0.25s ease; }
+
+  .entry-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .meta-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .meta-field label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--teal);
+    white-space: nowrap;
+  }
+
+  .meta-field input {
+    border: none;
+    border-bottom: 1.5px solid var(--line-color);
+    background: transparent;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 13px;
+    padding: 4px 2px;
+    color: var(--dark);
+    outline: none;
+    width: 130px;
+  }
+
+  .meta-field input:focus { border-bottom-color: var(--teal); }
+
+  .mood-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--teal);
+    margin-bottom: 8px;
+  }
+
+  .mood-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .mood-btn {
+    flex: 1;
+    min-width: 80px;
+    border: 1.5px solid var(--line-color);
+    background: white;
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 12px;
+    color: #666;
+    transition: all 0.2s;
+    line-height: 1.4;
+  }
+
+  .mood-btn:hover { border-color: var(--soft-teal); color: var(--teal); background: var(--pale-teal); }
+  .mood-btn.selected { border-color: var(--teal); background: var(--teal); color: white; }
+
+  .prompt-box {
+    border-radius: 0 0 8px 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+
+  .prompt-box label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--teal);
+    margin-bottom: 8px;
+  }
+
+  .prompt-box textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 13.5px;
+    color: var(--dark);
+    resize: vertical;
+    outline: none;
+    line-height: 1.8;
+    min-height: 72px;
+  }
+
+  .prompt-box textarea::placeholder { color: #BBBBBB; font-style: italic; }
+
+  .lined-lines {
+    border-top: 1px solid rgba(0,0,0,0.08);
+    margin-top: 6px;
+  }
+
+  .pb-teal { background: var(--pale-teal); border-top: 3px solid var(--teal); }
+  .pb-teal label { color: var(--teal); }
+  .pb-soft-teal { background: var(--pale-teal); border-top: 3px solid var(--soft-teal); }
+  .pb-soft-teal label { color: var(--soft-teal); }
+  .pb-lavender { background: var(--lavender); border-top: 3px solid var(--lavender-accent); }
+  .pb-lavender label { color: var(--lavender-accent); }
+  .pb-sage { background: var(--pale-sage); border-top: 3px solid var(--sage); }
+  .pb-sage label { color: var(--sage); }
+  .pb-blush { background: var(--blush); border-top: 3px solid var(--blush-accent); }
+  .pb-blush label { color: var(--blush-accent); }
+  .pb-warm { background: var(--warm-grey); border-top: 3px solid #6A6A6A; }
+  .pb-warm label { color: #6A6A6A; }
+
+  .worry-type-box {
+    background: var(--lavender);
+    border-top: 3px solid var(--lavender-accent);
+    border-radius: 0 0 8px 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+
+  .worry-type-box label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--lavender-accent);
+    margin-bottom: 10px;
+  }
+
+  .worry-type-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 8px;
+  }
+
+  .wt-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .wt-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--lavender-accent);
+    cursor: pointer;
+  }
+
+  .wt-option span {
+    font-size: 12.5px;
+    color: var(--dark);
+    line-height: 1.4;
+  }
+
+  .entry-footer-note {
+    font-style: italic;
+    font-size: 12.5px;
+    color: #666;
+    margin-top: 8px;
+    padding: 10px 0 4px;
+    border-top: 1px solid var(--pale-teal);
+    text-align: center;
+  }
+
+  /* ── TRACKER ── */
+  .tracker-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .tracker-header {
+    display: grid;
+    grid-template-columns: 90px 60px 100px 1fr 90px;
+    gap: 0;
+    background: var(--teal);
+    border-radius: 6px 6px 0 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .tracker-header span {
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+    padding: 8px 4px;
+    border-right: 1px solid rgba(255,255,255,0.2);
+    line-height: 1.3;
+  }
+
+  .tracker-header span:last-child { border-right: none; }
+
+  .tracker-row {
+    display: grid;
+    grid-template-columns: 90px 60px 100px 1fr 90px;
+    gap: 0;
+    background: white;
+    border: 1px solid var(--line-color);
+    border-top: none;
+  }
+
+  .tracker-row:nth-child(even) { background: var(--warm-grey); }
+
+  .tracker-row input {
+    border: none;
+    border-right: 1px solid var(--line-color);
+    background: transparent;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 12px;
+    color: var(--dark);
+    padding: 6px 8px;
+    outline: none;
+    width: 100%;
+    text-align: center;
+  }
+
+  .tracker-row input:last-child { border-right: none; }
+  .tracker-row input:focus { background: var(--pale-teal); }
+
+  .tracker-row .tracker-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+  }
+
+  .tracker-row .tracker-check input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--teal);
+    border: none;
+    background: transparent;
+  }
+
+  .tracker-note-input {
+    text-align: left !important;
+  }
+
+  /* ── TOOLKIT ── */
+  .toolkit-section {
+    margin-bottom: 12px;
+  }
+
+  /* ── CLOSING ── */
+  .closing-page {
+    text-align: center;
+    padding: 30px 0;
+  }
+
+  .closing-page p {
+    font-family: 'Lora', serif;
+    font-size: clamp(14px, 2.5vw, 17px);
+    color: var(--dark);
+    line-height: 1.85;
+    margin-bottom: 18px;
+  }
+
+  .closing-divider {
+    border: none;
+    border-top: 1px solid var(--soft-teal);
+    width: 200px;
+    margin: 24px auto;
+  }
+
+  .closing-share {
+    font-size: 14px;
+    color: var(--soft-teal);
+    font-style: italic;
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  .closing-crisis {
+    font-size: 12px;
+    color: var(--mid-grey);
+    line-height: 1.6;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* Save info box (home page) */
+  .save-info-box {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--pale-teal);
+    border-left: 4px solid var(--teal);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--dark);
+  }
+
+  .save-info-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* Save reminder (section banners) */
+  .save-reminder {
+    background: var(--warm-grey);
+    border: 1px solid var(--pale-teal);
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-size: 12.5px;
+    color: #555;
+    line-height: 1.55;
+    margin-bottom: 18px;
+  }
+
+  .save-reminder strong { color: var(--teal); }
+
+  /* Save notification */
+  .save-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--sage);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 200;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+
+  .save-toast.show { opacity: 1; transform: translateY(0); }
+
+  /* Bottom bar */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 8px;
+    background: var(--pale-teal);
+  }
+
+  /* Progress dots for entries */
+  .progress-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .progress-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--line-color);
+    transition: background 0.2s;
+  }
+
+  .progress-dot.filled { background: var(--sage); }
+  .progress-dot.current { background: var(--teal); }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .tracker-header, .tracker-row {
+      grid-template-columns: 70px 44px 80px 1fr 70px;
+    }
+
+    .tracker-header span, .tracker-row input {
+      font-size: 10px;
+      padding: 5px 3px;
+    }
+  }
+
+  /* Print styles */
+  @media print {
+    .top-bar, nav, .bottom-bar, .nav-save, .entry-nav { display: none !important; }
+    .section { display: block !important; page-break-after: always; }
+    main { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar"></div>
+
+<nav>
+  <div class="nav-inner">
+    <span class="nav-title">💙 Worry Journal</span>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showSection('cover', this)">Home</button>
+      <button class="nav-tab" onclick="showSection('worries', this)">Common Worries</button>
+      <button class="nav-tab" onclick="showSection('entries', this)">My Entries</button>
+      <button class="nav-tab" onclick="showSection('tracker', this)">Daily Tracker</button>
+      <button class="nav-tab" onclick="showSection('toolkit', this)">Self-Care Toolkit</button>
+      <button class="nav-tab" onclick="showSection('closing', this)">A Final Note</button>
+    </div>
+    <button class="nav-export" onclick="exportText()" title="Download all your entries as a text file">⬇ Export</button>
+  </div>
+</nav>
+
+<!-- Clear entries confirmation modal -->
+<div class="modal-overlay" id="clear-modal">
+  <div class="modal-box">
+    <h3>Clear all 6 entries?</h3>
+    <p>Your entries will first be <strong>downloaded as a text file</strong> so you have a permanent record. Then the form will be cleared, giving you 6 fresh entries to use again.<br><br>This cannot be undone once cleared.</p>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-confirm" onclick="confirmClear()">Download &amp; Clear ✓</button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- ══ COVER ══ -->
+  <div id="sec-cover" class="section active">
+    <div class="cover-title-box">
+      <h1>My Worry Journal</h1>
+    </div>
+    <p class="cover-subtitle">A gentle space to name your worries, understand them,<br>and find a moment of calm.</p>
+    <p class="cover-tagline">Designed with cancer journeys in mind — and open to anyone navigating anxiety.</p>
+    <hr class="divider">
+    <p class="intro-text">Receiving a cancer diagnosis — or living through treatment — can flood your mind with worries at any hour of the day. Some feel huge. Some feel silly. None of them are silly. This journal gives those worries a place to go, so they don't have to live rent-free in your head.</p>
+    <p class="intro-text">You don't need to fill this in every day. Use it <strong>whenever anxiety rises</strong> — after an appointment, in the middle of the night, before a scan, or when you just can't shake a feeling. There's also a simple daily mood tracker if you'd like a gentle habit. Do whatever works for you.</p>
+
+    <div class="how-to-box">
+      <h3>How to use this journal</h3>
+      <ol>
+        <li>① <strong>Open it when anxiety shows up</strong> — not on a schedule, but on your terms.</li>
+        <li>② <strong>Name the worry</strong> — write it down exactly as it sounds in your head.</li>
+        <li>③ <strong>Work through the prompts</strong> — gently, without judgement.</li>
+        <li>④ <strong>Check in with yourself</strong> — note how you feel before and after.</li>
+        <li>⑤ <strong>Use the daily tracker</strong> (optional) if you want a simple overview over time.</li>
+      </ol>
+    </div>
+
+    <p class="pull-quote">"Worries are like shadows — they grow biggest when you keep them in the dark."</p>
+    <hr class="divider">
+
+    <div class="save-info-box">
+      <span class="save-info-icon">💾</span>
+      <div>
+        <strong>Saving your journal</strong><br>
+        Your entries are <strong>automatically saved in this browser</strong> as you type — reopen this page on the same device and they'll still be here.<br>
+        To keep a permanent copy on your computer, use the <strong>⬇ Export</strong> button in the top bar. This downloads a text file of everything you've written. Export regularly, and always before using <em>Save &amp; Reset Entries</em>.
+      </div>
+    </div>
+
+    <div class="name-row">
+      <div class="name-field">
+        <label>Name (optional):</label>
+        <input type="text" id="user-name" placeholder="Your name" oninput="autoSave()">
+      </div>
+      <div class="name-field">
+        <label>Started:</label>
+        <input type="date" id="user-date" oninput="autoSave()">
+      </div>
+    </div>
+
+    <div style="margin-top: 28px; text-align: center;">
+      <button onclick="showSection('entries', document.querySelectorAll('.nav-tab')[2])" style="background: var(--teal); color: white; border: none; border-radius: 24px; padding: 12px 32px; font-family: 'Source Sans 3', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; margin-right: 12px;">Begin an Entry →</button>
+      <button onclick="showSection('worries', document.querySelectorAll('.nav-tab')[1])" style="background: transparent; color: var(--teal); border: 2px solid var(--teal); border-radius: 24px; padding: 11px 28px; font-family: 'Source Sans 3', sans-serif; font-size: 14px; cursor: pointer;">View Common Worries</button>
+    </div>
+  </div>
+
+  <!-- ══ COMMON WORRIES ══ -->
+  <div id="sec-worries" class="section">
+    <h2 class="section-heading">You Are Not Alone In These Worries</h2>
+    <p class="intro-text">These are real, honest worries that people facing a cancer diagnosis — and those who love them — commonly experience. If you see yourself here, know that these feelings make complete sense.</p>
+
+    <div class="worry-category cat-health">
+      <h3>About my health &amp; body</h3>
+      <ul>
+        <li>"What if the treatment stops working?"</li>
+        <li>"I'm terrified of the side effects — will I recognise myself?"</li>
+        <li>"What does this pain mean? Is it getting worse?"</li>
+        <li>"I'm scared to find out my scan results."</li>
+        <li>"I don't understand what's happening inside my own body."</li>
+        <li>"Will I ever feel normal again?"</li>
+      </ul>
+    </div>
+
+    <div class="worry-category cat-medical">
+      <h3>About medical progress &amp; the system</h3>
+      <ul>
+        <li>"Am I on the right treatment? Should I get a second opinion?"</li>
+        <li>"What if my doctors miss something?"</li>
+        <li>"I feel like just a number, not a person."</li>
+        <li>"What happens if I run out of treatment options?"</li>
+        <li>"I don't always understand what they're telling me."</li>
+        <li>"I'm scared to ask questions in case I don't like the answers."</li>
+      </ul>
+    </div>
+
+    <div class="worry-category cat-burden">
+      <h3>About being a burden</h3>
+      <ul>
+        <li>"I hate needing help. I've always been the one who copes."</li>
+        <li>"I feel guilty for how much this affects everyone around me."</li>
+        <li>"I don't want my family to put their lives on hold for me."</li>
+        <li>"I worry about the financial strain I'm causing."</li>
+        <li>"I feel like I'm always cancelling on people."</li>
+        <li>"I don't want pity — I just want to feel like myself."</li>
+      </ul>
+    </div>
+
+    <div class="worry-category cat-family">
+      <h3>About family &amp; relationships</h3>
+      <ul>
+        <li>"How do I talk to my children about this?"</li>
+        <li>"My partner is struggling and I don't have the energy to support them."</li>
+        <li>"I'm frightened about what happens to the people I love."</li>
+        <li>"I feel isolated — people don't know what to say and neither do I."</li>
+        <li>"I'm grieving the version of our life we had planned."</li>
+        <li>"I worry about being forgotten, or only being remembered as 'the sick one'."</li>
+      </ul>
+    </div>
+
+    <div class="worry-category cat-future">
+      <h3>About the future &amp; life</h3>
+      <ul>
+        <li>"Will I be here for the milestones that matter?"</li>
+        <li>"I can't make plans. Everything feels uncertain."</li>
+        <li>"I'm angry that this is happening to me."</li>
+        <li>"I feel guilty for having good days — like I'm not sick enough."</li>
+        <li>"I'm scared of dying. Of what that means. Of the process."</li>
+        <li>"I just want one day where I don't think about cancer."</li>
+      </ul>
+    </div>
+
+    <p class="footnote-italic">Your worry might not appear on this list — and that's fine. All worries belong here.</p>
+
+    <div style="margin-top: 24px; text-align: center;">
+      <button onclick="showSection('entries', document.querySelectorAll('.nav-tab')[2])" style="background: var(--teal); color: white; border: none; border-radius: 24px; padding: 12px 32px; font-family: 'Source Sans 3', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer;">Start Writing →</button>
+    </div>
+  </div>
+
+  <div id="sec-entries" class="section">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:10px;">
+      <div>
+        <h2 class="section-heading" style="margin-bottom:6px;">My Worry Entries</h2>
+        <p class="intro-text" style="margin-bottom:0;">Use one entry per worry or difficult moment. You have 6 entries — take them as slowly as you need.</p>
+      </div>
+      <button onclick="openClearModal()" style="background: var(--warm-grey); border: 1.5px solid var(--blush-accent); color: var(--blush-accent); border-radius: 20px; padding: 8px 18px; font-family: 'Source Sans 3', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; margin-top: 4px;" title="Download your entries then clear for fresh use">🔄 Save &amp; Reset Entries</button>
+    </div>
+    <div class="save-reminder">💾 Entries auto-save in this browser. Use <strong>⬇ Export</strong> (top bar) to download a permanent text file to your computer.</div>
+
+    <div class="entry-nav" id="entry-nav">
+      <!-- Populated by JS -->
+    </div>
+
+    <div class="progress-dots" id="progress-dots"></div>
+
+    <!-- 6 entries -->
+    <div id="entries-container"></div>
+  </div>
+
+  <!-- ══ TRACKER ══ -->
+  <div id="sec-tracker" class="section">
+    <h2 class="section-heading">Daily Mood Tracker</h2>
+    <p class="intro-text">Optional — use this to spot patterns. Rate your overall day 1 (very hard) to 5 (good), jot a word, and note anything significant. 28 days here.</p>
+    <div class="save-reminder">💾 Your tracker auto-saves in this browser. Use <strong>⬇ Export</strong> (top bar) to download a permanent copy to your computer.</div>
+
+    <div class="tracker-grid">
+      <div class="tracker-header">
+        <span>Date</span>
+        <span>Mood<br>1–5</span>
+        <span>One Word</span>
+        <span>Notable (appointment / side effect / good moment)</span>
+        <span>Kind to<br>myself ☐</span>
+      </div>
+      <div id="tracker-rows"></div>
+    </div>
+  </div>
+
+  <!-- ══ TOOLKIT ══ -->
+  <div id="sec-toolkit" class="section">
+    <h2 class="section-heading">Your Self-Care Toolkit</h2>
+    <p class="intro-text" style="margin-bottom: 10px;">Fill this in when you're calm, so it's ready when you're not.</p>
+    <div class="save-reminder">💾 Your toolkit auto-saves in this browser. Use <strong>⬇ Export</strong> (top bar) to download a permanent copy to your computer.</div>
+
+    <div id="toolkit-container"></div>
+  </div>
+
+  <!-- ══ CLOSING ══ -->
+  <div id="sec-closing" class="section">
+    <div class="closing-page">
+      <h2 class="section-heading" style="text-align:center; margin-bottom: 28px;">A final note — for the hard days.</h2>
+      <p>Living with uncertainty is one of the hardest things a person can do.</p>
+      <p>You are doing it. That matters.</p>
+      <p>This journal doesn't promise to take the worry away. But it gives it somewhere to sit that isn't inside your chest at 3am.</p>
+      <p>On your worst days, you don't have to be brave or positive or grateful.<br>You just have to get through the day. <em>That's enough.</em></p>
+      <p>And on your better days, notice them. Write them down too.</p>
+      <hr class="closing-divider">
+      <p class="closing-share">If you found this journal helpful, please share it freely.<br>You are not alone. 💙</p>
+      <p class="closing-crisis">Crisis support: If you are struggling, please reach out to a healthcare professional, your cancer nurse specialist, or a mental health helpline in your country.</p>
+    </div>
+  </div>
+
+</main>
+
+<div class="bottom-bar"></div>
+<div class="save-toast" id="save-toast">✓ Saved to this browser</div>
+
+<script>
+// ── NAV ──────────────────────────────────────────────────────────────────────
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── ENTRIES ──────────────────────────────────────────────────────────────────
+const ENTRY_COUNT = 6;
+
+function buildEntries() {
+  const nav = document.getElementById('entry-nav');
+  const dots = document.getElementById('progress-dots');
+  const container = document.getElementById('entries-container');
+
+  for (let i = 1; i <= ENTRY_COUNT; i++) {
+    // Nav button
+    const btn = document.createElement('button');
+    btn.className = 'entry-btn' + (i === 1 ? ' active' : '');
+    btn.id = `entry-btn-${i}`;
+    btn.textContent = `Entry ${i}`;
+    btn.onclick = () => switchEntry(i);
+    nav.appendChild(btn);
+
+    // Progress dot
+    const dot = document.createElement('div');
+    dot.className = 'progress-dot' + (i === 1 ? ' current' : '');
+    dot.id = `dot-${i}`;
+    dots.appendChild(dot);
+
+    // Card
+    const card = document.createElement('div');
+    card.className = 'entry-card' + (i === 1 ? ' active' : '');
+    card.id = `entry-card-${i}`;
+    card.innerHTML = entryHTML(i);
+    container.appendChild(card);
+  }
+}
+
+function entryHTML(n) {
+  return `
+    <div class="entry-meta">
+      <div class="meta-field"><label>Date:</label><input type="date" id="e${n}-date" oninput="markDirty(${n})"></div>
+      <div class="meta-field"><label>Time:</label><input type="time" id="e${n}-time" oninput="markDirty(${n})"></div>
+    </div>
+
+    <p class="mood-label">How are you feeling RIGHT NOW? (select one)</p>
+    <div class="mood-row" id="e${n}-mood-before">
+      ${['😔 Very low','😟 Low','😐 Okay','🙂 Alright','😊 Good'].map((m,idx) => `
+        <button class="mood-btn" data-entry="${n}" data-group="before" data-val="${idx+1}" onclick="selectMood(this)">${m}</button>
+      `).join('')}
+    </div>
+
+    <div class="prompt-box pb-teal">
+      <label>The worry — write it exactly as it sounds in your head:</label>
+      <textarea id="e${n}-worry" rows="3" placeholder="What's the worry that brought you here today?" oninput="markDirty(${n})"></textarea>
+    </div>
+
+    <div class="prompt-box pb-soft-teal">
+      <label>What triggered this worry today?</label>
+      <textarea id="e${n}-trigger" rows="2" placeholder="An appointment, a conversation, a feeling, or nothing specific..." oninput="markDirty(${n})"></textarea>
+    </div>
+
+    <div class="worry-type-box">
+      <label>Is this worry about...</label>
+      <div class="worry-type-options">
+        <label class="wt-option"><input type="checkbox" id="e${n}-wt1" onchange="markDirty(${n})"><span>Something happening RIGHT NOW</span></label>
+        <label class="wt-option"><input type="checkbox" id="e${n}-wt2" onchange="markDirty(${n})"><span>Something that MIGHT happen</span></label>
+        <label class="wt-option"><input type="checkbox" id="e${n}-wt3" onchange="markDirty(${n})"><span>Something I CANNOT control</span></label>
+        <label class="wt-option"><input type="checkbox" id="e${n}-wt4" onchange="markDirty(${n})"><span>Something I CAN act on</span></label>
+      </div>
+    </div>
+
+    <div class="prompt-box pb-sage">
+      <label>What would I say to a dear friend who had this worry?</label>
+      <textarea id="e${n}-friend" rows="3" placeholder="Imagine them sitting beside you. What would you gently say?" oninput="markDirty(${n})"></textarea>
+    </div>
+
+    <div class="prompt-box pb-blush">
+      <label>One small thing I can do — or let go of — today:</label>
+      <textarea id="e${n}-action" rows="2" placeholder="Even 'nothing right now' is a valid answer..." oninput="markDirty(${n})"></textarea>
+    </div>
+
+    <p class="mood-label" style="margin-top: 8px;">How do you feel AFTER writing this?</p>
+    <div class="mood-row" id="e${n}-mood-after">
+      ${['😔 Very low','😟 Low','😐 Okay','🙂 Alright','😊 Good'].map((m,idx) => `
+        <button class="mood-btn" data-entry="${n}" data-group="after" data-val="${idx+1}" onclick="selectMood(this)">${m}</button>
+      `).join('')}
+    </div>
+
+    <p class="entry-footer-note">✦ Writing a worry down does not make it more real. It makes it smaller.</p>
+
+    <div style="text-align:right; margin-top: 16px;">
+      ${n < ENTRY_COUNT ? `<button onclick="switchEntry(${n+1})" style="background: var(--teal); color: white; border: none; border-radius: 20px; padding: 9px 22px; font-family: 'Source Sans 3', sans-serif; font-size: 13px; cursor: pointer;">Next Entry →</button>` : `<button onclick="showSection('tracker', document.querySelectorAll('.nav-tab')[3])" style="background: var(--sage); color: white; border: none; border-radius: 20px; padding: 9px 22px; font-family: 'Source Sans 3', sans-serif; font-size: 13px; cursor: pointer;">Go to Daily Tracker →</button>`}
+    </div>
+  `;
+}
+
+let currentEntry = 1;
+
+function switchEntry(n) {
+  document.querySelectorAll('.entry-card').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.entry-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.progress-dot').forEach(d => d.classList.remove('current'));
+
+  document.getElementById(`entry-card-${n}`).classList.add('active');
+  document.getElementById(`entry-btn-${n}`).classList.add('active');
+  document.getElementById(`dot-${n}`).classList.add('current');
+  currentEntry = n;
+  window.scrollTo({ top: 72, behavior: 'smooth' });
+}
+
+function selectMood(btn) {
+  const entry = btn.dataset.entry;
+  const group = btn.dataset.group;
+  const val = btn.dataset.val;
+  document.querySelectorAll(`.mood-btn[data-entry="${entry}"][data-group="${group}"]`).forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  markDirty(entry);
+}
+
+function markDirty(n) {
+  const btn = document.getElementById(`entry-btn-${n}`);
+  if (btn && !btn.classList.contains('has-content')) {
+    btn.classList.add('has-content');
+    document.getElementById(`dot-${n}`).classList.add('filled');
+  }
+  autoSave();
+}
+
+// ── TRACKER ──────────────────────────────────────────────────────────────────
+function buildTracker() {
+  const container = document.getElementById('tracker-rows');
+  for (let i = 1; i <= 28; i++) {
+    const row = document.createElement('div');
+    row.className = 'tracker-row';
+    row.innerHTML = `
+      <input type="date" id="tr${i}-date" oninput="autoSave()">
+      <input type="number" id="tr${i}-mood" min="1" max="5" placeholder="1–5" oninput="autoSave()">
+      <input type="text" id="tr${i}-word" placeholder="word..." oninput="autoSave()">
+      <input type="text" id="tr${i}-note" class="tracker-note-input" placeholder="anything notable..." oninput="autoSave()">
+      <div class="tracker-check"><input type="checkbox" id="tr${i}-kind" onchange="autoSave()"></div>
+    `;
+    container.appendChild(row);
+  }
+}
+
+// ── TOOLKIT ──────────────────────────────────────────────────────────────────
+const toolkitItems = [
+  { id: 'comfort', label: 'Three things that always comfort me', cls: 'pb-teal', rows: 3, ph: 'e.g. a warm bath, my favourite playlist, calling my sister...' },
+  { id: 'people', label: 'People I can call when I need to talk', cls: 'pb-sage', rows: 3, ph: 'Name and how they help...' },
+  { id: 'sleep', label: 'Things that help me sleep or rest', cls: 'pb-lavender', rows: 3, ph: 'e.g. a podcast, reading, a warm drink, deep breathing...' },
+  { id: 'me', label: 'Things that make me feel like ME (not a patient)', cls: 'pb-blush', rows: 3, ph: 'Hobbies, places, activities, things you love...' },
+  { id: 'questions', label: 'Questions I want to ask my medical team', cls: 'pb-warm', rows: 4, ph: 'Write them here so you don\'t forget in the appointment...' },
+  { id: 'grateful', label: 'Things I am grateful for right now (even tiny ones)', cls: 'pb-teal', rows: 3, ph: 'Today\'s sunshine, a kind word, a cup of tea...' },
+];
+
+function buildToolkit() {
+  const container = document.getElementById('toolkit-container');
+  toolkitItems.forEach(item => {
+    const div = document.createElement('div');
+    div.className = `prompt-box ${item.cls} toolkit-section`;
+    div.innerHTML = `
+      <label>${item.label}</label>
+      <textarea id="tk-${item.id}" rows="${item.rows}" placeholder="${item.ph}" oninput="autoSave()"></textarea>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ── SAVE / LOAD ───────────────────────────────────────────────────────────────
+let saveTimer = null;
+
+function autoSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveAll, 1200);
+}
+
+function saveAll() {
+  const data = { v: 2 };
+
+  // Cover
+  data.name = document.getElementById('user-name')?.value || '';
+  data.date = document.getElementById('user-date')?.value || '';
+
+  // Entries
+  data.entries = [];
+  for (let i = 1; i <= ENTRY_COUNT; i++) {
+    const entry = {
+      date: document.getElementById(`e${i}-date`)?.value || '',
+      time: document.getElementById(`e${i}-time`)?.value || '',
+      worry: document.getElementById(`e${i}-worry`)?.value || '',
+      trigger: document.getElementById(`e${i}-trigger`)?.value || '',
+      friend: document.getElementById(`e${i}-friend`)?.value || '',
+      action: document.getElementById(`e${i}-action`)?.value || '',
+      wt: [1,2,3,4].map(j => document.getElementById(`e${i}-wt${j}`)?.checked || false),
+      moodBefore: document.querySelector(`.mood-btn[data-entry="${i}"][data-group="before"].selected`)?.dataset.val || '',
+      moodAfter: document.querySelector(`.mood-btn[data-entry="${i}"][data-group="after"].selected`)?.dataset.val || '',
+    };
+    data.entries.push(entry);
+  }
+
+  // Tracker
+  data.tracker = [];
+  for (let i = 1; i <= 28; i++) {
+    data.tracker.push({
+      date: document.getElementById(`tr${i}-date`)?.value || '',
+      mood: document.getElementById(`tr${i}-mood`)?.value || '',
+      word: document.getElementById(`tr${i}-word`)?.value || '',
+      note: document.getElementById(`tr${i}-note`)?.value || '',
+      kind: document.getElementById(`tr${i}-kind`)?.checked || false,
+    });
+  }
+
+  // Toolkit
+  data.toolkit = {};
+  toolkitItems.forEach(item => {
+    data.toolkit[item.id] = document.getElementById(`tk-${item.id}`)?.value || '';
+  });
+
+  try {
+    localStorage.setItem('worryJournal', JSON.stringify(data));
+    showToast();
+  } catch(e) {
+    console.warn('Could not save:', e);
+  }
+}
+
+function loadAll() {
+  try {
+    const raw = localStorage.getItem('worryJournal');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+
+    if (data.name) document.getElementById('user-name').value = data.name;
+    if (data.date) document.getElementById('user-date').value = data.date;
+
+    if (data.entries) {
+      data.entries.forEach((entry, idx) => {
+        const i = idx + 1;
+        if (entry.date) document.getElementById(`e${i}-date`).value = entry.date;
+        if (entry.time) document.getElementById(`e${i}-time`).value = entry.time;
+        if (entry.worry) { document.getElementById(`e${i}-worry`).value = entry.worry; markDirty(i); }
+        if (entry.trigger) document.getElementById(`e${i}-trigger`).value = entry.trigger;
+        if (entry.friend) document.getElementById(`e${i}-friend`).value = entry.friend;
+        if (entry.action) document.getElementById(`e${i}-action`).value = entry.action;
+        if (entry.wt) entry.wt.forEach((checked, j) => {
+          const el = document.getElementById(`e${i}-wt${j+1}`);
+          if (el) el.checked = checked;
+        });
+        if (entry.moodBefore) {
+          const btn = document.querySelector(`.mood-btn[data-entry="${i}"][data-group="before"][data-val="${entry.moodBefore}"]`);
+          if (btn) btn.classList.add('selected');
+        }
+        if (entry.moodAfter) {
+          const btn = document.querySelector(`.mood-btn[data-entry="${i}"][data-group="after"][data-val="${entry.moodAfter}"]`);
+          if (btn) btn.classList.add('selected');
+        }
+      });
+    }
+
+    if (data.tracker) {
+      data.tracker.forEach((row, idx) => {
+        const i = idx + 1;
+        if (row.date) document.getElementById(`tr${i}-date`).value = row.date;
+        if (row.mood) document.getElementById(`tr${i}-mood`).value = row.mood;
+        if (row.word) document.getElementById(`tr${i}-word`).value = row.word;
+        if (row.note) document.getElementById(`tr${i}-note`).value = row.note;
+        if (row.kind) document.getElementById(`tr${i}-kind`).checked = row.kind;
+      });
+    }
+
+    if (data.toolkit) {
+      toolkitItems.forEach(item => {
+        if (data.toolkit[item.id]) document.getElementById(`tk-${item.id}`).value = data.toolkit[item.id];
+      });
+    }
+  } catch(e) {
+    console.warn('Could not load:', e);
+  }
+}
+
+function showToast() {
+  const t = document.getElementById('save-toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── EXPORT TO TEXT ────────────────────────────────────────────────────────────
+const MOOD_LABELS = ['', 'Very low 😔', 'Low 😟', 'Okay 😐', 'Alright 🙂', 'Good 😊'];
+
+function exportText() {
+  const name = document.getElementById('user-name')?.value || 'Anonymous';
+  const startDate = document.getElementById('user-date')?.value || '';
+  const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  let txt = '';
+  txt += '═══════════════════════════════════════════════════════\n';
+  txt += '                    MY WORRY JOURNAL\n';
+  txt += '═══════════════════════════════════════════════════════\n';
+  txt += `Name: ${name}\n`;
+  if (startDate) txt += `Journal started: ${startDate}\n`;
+  txt += `Exported: ${today}\n`;
+  txt += '\n';
+
+  // Entries
+  txt += '───────────────────────────────────────────────────────\n';
+  txt += 'WORRY ENTRIES\n';
+  txt += '───────────────────────────────────────────────────────\n\n';
+
+  let hasAnyEntry = false;
+  for (let i = 1; i <= ENTRY_COUNT; i++) {
+    const worry = document.getElementById(`e${i}-worry`)?.value?.trim();
+    if (!worry) continue;
+    hasAnyEntry = true;
+
+    const date = document.getElementById(`e${i}-date`)?.value || '';
+    const time = document.getElementById(`e${i}-time`)?.value || '';
+    const trigger = document.getElementById(`e${i}-trigger`)?.value?.trim() || '';
+    const friend = document.getElementById(`e${i}-friend`)?.value?.trim() || '';
+    const action = document.getElementById(`e${i}-action`)?.value?.trim() || '';
+    const moodBefore = document.querySelector(`.mood-btn[data-entry="${i}"][data-group="before"].selected`)?.dataset.val || '';
+    const moodAfter = document.querySelector(`.mood-btn[data-entry="${i}"][data-group="after"].selected`)?.dataset.val || '';
+    const wt = [1,2,3,4].map(j => document.getElementById(`e${i}-wt${j}`)?.checked);
+    const wtLabels = ['Something happening RIGHT NOW', 'Something that MIGHT happen', 'Something I CANNOT control', 'Something I CAN act on'];
+    const checkedWt = wtLabels.filter((_, j) => wt[j]);
+
+    txt += `ENTRY ${i}`;
+    if (date || time) txt += `   (${[date, time].filter(Boolean).join(' at ')})`;
+    txt += '\n';
+    txt += `${'─'.repeat(40)}\n`;
+    if (moodBefore) txt += `Mood before writing: ${MOOD_LABELS[parseInt(moodBefore)] || ''}\n`;
+    txt += `\nThe worry:\n${worry}\n`;
+    if (trigger) txt += `\nWhat triggered it:\n${trigger}\n`;
+    if (checkedWt.length) txt += `\nThis worry is about: ${checkedWt.join(' · ')}\n`;
+    if (friend) txt += `\nWhat I'd say to a friend with this worry:\n${friend}\n`;
+    if (action) txt += `\nOne small thing I can do or let go of:\n${action}\n`;
+    if (moodAfter) txt += `\nMood after writing: ${MOOD_LABELS[parseInt(moodAfter)] || ''}\n`;
+    txt += '\n\n';
+  }
+
+  if (!hasAnyEntry) txt += '(No entries written yet.)\n\n';
+
+  // Tracker
+  txt += '───────────────────────────────────────────────────────\n';
+  txt += 'DAILY MOOD TRACKER\n';
+  txt += '───────────────────────────────────────────────────────\n\n';
+  txt += `${'Date'.padEnd(14)}${'Mood'.padEnd(8)}${'One Word'.padEnd(16)}Kind to Self   Notable\n`;
+  txt += `${'─'.repeat(70)}\n`;
+  let hasTracker = false;
+  for (let i = 1; i <= 28; i++) {
+    const date = document.getElementById(`tr${i}-date`)?.value || '';
+    const mood = document.getElementById(`tr${i}-mood`)?.value || '';
+    const word = document.getElementById(`tr${i}-word`)?.value || '';
+    const note = document.getElementById(`tr${i}-note`)?.value || '';
+    const kind = document.getElementById(`tr${i}-kind`)?.checked;
+    if (!date && !mood && !word && !note) continue;
+    hasTracker = true;
+    txt += `${(date||'').padEnd(14)}${(mood||'').padEnd(8)}${(word||'').padEnd(16)}${kind ? '✓'.padEnd(15) : ' '.padEnd(15)}${note}\n`;
+  }
+  if (!hasTracker) txt += '(No tracker entries yet.)\n';
+  txt += '\n';
+
+  // Toolkit
+  txt += '───────────────────────────────────────────────────────\n';
+  txt += 'SELF-CARE TOOLKIT\n';
+  txt += '───────────────────────────────────────────────────────\n\n';
+  toolkitItems.forEach(item => {
+    const val = document.getElementById(`tk-${item.id}`)?.value?.trim();
+    if (val) {
+      txt += `${item.label.toUpperCase()}:\n${val}\n\n`;
+    }
+  });
+
+  txt += '═══════════════════════════════════════════════════════\n';
+  txt += 'End of journal export. You are not alone. 💙\n';
+  txt += '═══════════════════════════════════════════════════════\n';
+
+  // Download
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const dateStr = new Date().toISOString().slice(0,10);
+  a.download = `My_Worry_Journal_${dateStr}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  // Show toast
+  const t = document.getElementById('save-toast');
+  t.textContent = '✓ Journal downloaded as text file';
+  t.classList.add('show');
+  setTimeout(() => { t.classList.remove('show'); t.textContent = '✓ Saved to this browser'; }, 3000);
+}
+
+// ── CLEAR ENTRIES MODAL ───────────────────────────────────────────────────────
+function openClearModal() {
+  document.getElementById('clear-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('clear-modal').classList.remove('show');
+}
+
+function confirmClear() {
+  closeModal();
+  // First export so user has a record
+  exportText();
+  // Small delay so download triggers before DOM changes
+  setTimeout(() => {
+    for (let i = 1; i <= ENTRY_COUNT; i++) {
+      // Clear text fields
+      ['date','time','worry','trigger','friend','action'].forEach(field => {
+        const el = document.getElementById(`e${i}-${field}`);
+        if (el) el.value = '';
+      });
+      // Clear checkboxes
+      [1,2,3,4].forEach(j => {
+        const el = document.getElementById(`e${i}-wt${j}`);
+        if (el) el.checked = false;
+      });
+      // Clear mood buttons
+      document.querySelectorAll(`.mood-btn[data-entry="${i}"]`).forEach(b => b.classList.remove('selected'));
+      // Reset nav button and dot
+      const btn = document.getElementById(`entry-btn-${i}`);
+      if (btn) btn.classList.remove('has-content');
+      const dot = document.getElementById(`dot-${i}`);
+      if (dot) dot.classList.remove('filled');
+    }
+    // Switch to entry 1
+    switchEntry(1);
+    // Update localStorage
+    saveAll();
+
+    const t = document.getElementById('save-toast');
+    t.textContent = '✓ Entries cleared — ready for fresh use';
+    t.classList.add('show');
+    setTimeout(() => { t.classList.remove('show'); t.textContent = '✓ Saved to this browser'; }, 3500);
+  }, 800);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildEntries();
+buildTracker();
+buildToolkit();
+loadAll();
+
+// Set today's date as default for new entry
+document.addEventListener('DOMContentLoaded', () => {});
+</script>
+</body>
+</html>
